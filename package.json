@@ -10,7 +10,7 @@
     "build:remix": "remix build",
     "dev": "run-p dev:*",
     "dev:css": "npm run generate:css -- --watch",
-    "dev:remix": "remix dev",
+    "dev:remix": "cross-env NODE_ENV=development netlify dev",
     "e2e-test": "cypress run",
     "format": "prettier --write .",
     "generate:css": "npx tailwindcss -o ./app/styles/tailwind.css",
@@ -27,6 +27,8 @@
     "/server/build"
   ],
   "dependencies": {
+    "@headlessui/react": "^1.7.1",
+    "@heroicons/react": "^2.0.11",
     "@netlify/functions": "^1.2.0",
     "@remix-run/netlify": "^1.6.8",
     "@remix-run/node": "^1.6.8",
@@ -35,6 +37,7 @@
     "@testing-library/cypress": "^8.0.3",
     "airtable": "^0.11.4",
     "bcryptjs": "^2.4.3",
+    "classnames": "^2.3.2",
     "cypress": "^10.4.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
