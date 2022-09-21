@@ -12,6 +12,8 @@ import { Fragment } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
+import tailwindStylesheetUrl from "./styles/tailwind.css";
+import Header from "./components/Header";
 
 const user = {
   name: "Tom Cook",
@@ -31,9 +33,6 @@ const userNavigation = [
   { name: "Settings", href: "#" },
   { name: "Sign out", href: "#" },
 ];
-
-import tailwindStylesheetUrl from "./styles/tailwind.css";
-import Header from "./components/Header";
 
 export const meta: MetaFunction = () => {
   return { title: "New Remix App" };

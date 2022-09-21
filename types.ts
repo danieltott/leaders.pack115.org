@@ -14,6 +14,7 @@ export type Status = "Active" | "Potential" | "Graduated" | "Inactive";
 
 export type Scout = {
   Parents?: string[];
+  "Parent Names": string[];
   School?: string[];
   "Scout Name": string;
   Den?: string[];
@@ -28,6 +29,7 @@ export type Scout = {
    */
   "Health form"?: string;
   Notes?: string;
+  Tags?: string[];
 };
 
 export type Adult = {
@@ -43,7 +45,7 @@ export type Adult = {
   "Health form"?: string;
   "No payment required"?: boolean;
   Notes?: string;
-  Name?: string;
+  Name: string;
   Phone?: string;
   Scouts?: string[];
   "Phone Alt"?: string;

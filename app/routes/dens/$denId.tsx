@@ -3,14 +3,19 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type { LoaderArgs } from "@remix-run/node";
 import Layout from "~/components/Layout";
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import { CalendarIcon, MapPinIcon, UsersIcon } from "@heroicons/react/20/solid";
 import { fetchAllData } from "~/data";
+import ScoutCard, { CopyEmailsFromScouts } from "~/components/ScoutCard";
+import Card from "~/components/Card";
+import { Scout, Data, Ids } from "types";
 
 export async function loader({ request, params }: LoaderArgs) {
+  console.log("hello");
   invariant(params.denId, "denId not found");
 
   const allData = await fetchAllData();
 
+  console.log({ allData });
   const den = allData.data.dens[params.denId];
   const denScouts = den.Scouts?.map(
     (scoutId) => allData.data.scouts[scoutId]
@@ -24,202 +29,221 @@ export async function loader({ request, params }: LoaderArgs) {
     return scout.Status === "Potential";
   });
 
-  return json({ ...allData, den, activeDenScouts, potentialDenScouts });
+  const cubHauntedDenScouts = denScouts?.filter((scout) => {
+    return (
+      scout["Cub Haunted Signups"] && scout["Cub Haunted Signups"].length > 0
+    );
+  });
+
+  return json({
+    ...allData,
+    den,
+    activeDenScouts,
+    potentialDenScouts,
+    cubHauntedDenScouts,
+  });
+}
+
+function CubHauntedScoutCard({
+  scout,
+  data,
+  ids,
+}: {
+  scout: Scout;
+  data: Data;
+  ids: Ids;
+}) {
+  const cubHauntedSignups = scout["Cub Haunted Signups"];
+  if (!cubHauntedSignups || cubHauntedSignups.length === 0) {
+    return null;
+  }
+
+  const cubHauntedSignupsData = cubHauntedSignups.map(
+    (id) => data.cubHauntedSignups[id]
+  )[0];
+
+  if (!cubHauntedSignupsData) {
+    return null;
+  }
+
+  const hasAdditionalChildren =
+    (cubHauntedSignupsData["Scout(s)"] &&
+      cubHauntedSignupsData["Scout(s)"].length > 1) ||
+    !!cubHauntedSignupsData["Additional Children"];
+
+  return (
+    <div
+      key={scout["Scout Name"]}
+      className="relative flex items-start space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+    >
+      <div className="min-w-0 flex-1">
+        <a href="#x" className="focus:outline-none">
+          <span className="absolute inset-0" aria-hidden="true" />
+          <p className="text-sm font-semibold text-gray-900">
+            {scout["Scout Name"]}
+          </p>
+          <p className="text-sm text-gray-500">
+            <span className="text-gray-900">Adults:</span>{" "}
+            {cubHauntedSignupsData["Adult(s)"]
+              ?.map((id) => data.adults[id].Name)
+              .join(", ")}
+          </p>
+          {cubHauntedSignupsData["Additional Adults"] && (
+            <p className="text-sm text-gray-500">
+              {cubHauntedSignupsData["Additional Adults"]}
+            </p>
+          )}
+          {hasAdditionalChildren && (
+            <>
+              <p className="text-sm text-gray-500">
+                <span className="text-gray-900">Additional Children:</span>{" "}
+                {cubHauntedSignupsData["Scout(s)"]
+                  ?.filter(
+                    (id) =>
+                      data.scouts[id]["Scout Name"] !== scout["Scout Name"]
+                  )
+                  .map((id) => data.scouts[id]["Scout Name"])
+                  .join(", ")}
+              </p>
+              {cubHauntedSignupsData["Additional Children"] && (
+                <p className="text-sm text-gray-500">
+                  {cubHauntedSignupsData["Additional Children"]}
+                </p>
+              )}
+            </>
+          )}
+          {typeof cubHauntedSignupsData["Total Day Passes"] !== "undefined" &&
+            cubHauntedSignupsData["Total Day Passes"] > 0 && (
+              <p className="text-sm text-gray-500">
+                <span className="text-gray-900">Day Passes:</span>{" "}
+                {cubHauntedSignupsData["Total Day Passes"]}
+              </p>
+            )}
+          {typeof cubHauntedSignupsData["Total Weekend Passes"] !==
+            "undefined" &&
+            cubHauntedSignupsData["Total Weekend Passes"] > 0 && (
+              <p className="text-sm text-gray-500">
+                <span className="text-gray-900">Weekend Passes:</span>{" "}
+                {cubHauntedSignupsData["Total Weekend Passes"]}
+              </p>
+            )}
+        </a>
+      </div>
+      <div className="flex-shrink-0">
+        {!cubHauntedSignupsData["Paid"] && (
+          <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+            Needs Payment: ${cubHauntedSignupsData["Total Owed"]}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function Index() {
-  const { data, ids, den, activeDenScouts, potentialDenScouts } =
-    useLoaderData<typeof loader>();
+  const {
+    data,
+    ids,
+    den,
+    activeDenScouts,
+    potentialDenScouts,
+    cubHauntedDenScouts,
+  } = useLoaderData<typeof loader>();
   return (
     <Layout title={den["Den Name"]}>
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Active Scouts
-            </h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Scouts that are active and paid
-            </p>
-          </div>
-        </div>
+      <div className="space-y-4">
+        {activeDenScouts && (
+          <ScoutCard
+            title="Active Scouts"
+            scouts={activeDenScouts}
+            description="Scouts that are active and paid"
+          />
+        )}
 
-        <div className="mt-8 flex flex-col">
-          <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                      >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Parents
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Email
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Phone
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Health Form Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {activeDenScouts?.map((scout) => (
-                      <>
-                        <tr key={scout["Scout Name"]}>
-                          <td
-                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                            rowSpan={scout.Parents?.length || 1}
-                          >
-                            {scout["Scout Name"]}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {scout["Parent Names"]?.[0] || null}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {scout["Parents' Email"]?.[0] || null}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {scout["Parents' Phones"]?.[0] || null}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {scout["Health form"]}
-                          </td>
-                        </tr>
-                        {scout.Parents?.slice(1).map((parent, index) => (
-                          <tr key={parent}>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parent Names"]?.[index + 1] || null}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parents' Email"]?.[index + 1] || null}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parents' Phones"]?.[index + 1] || null}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Health form"]}
-                            </td>
-                          </tr>
-                        ))}
-                      </>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {potentialDenScouts && potentialDenScouts?.length > 0 && (
-        <div className="mt-8 px-4 sm:px-6 lg:px-8">
-          <div className="sm:flex sm:items-center">
-            <div className="sm:flex-auto">
-              <h1 className="text-xl font-semibold text-gray-900">
-                Potential Scouts
-              </h1>
-              <p className="mt-2 text-sm text-gray-700">
-                Scouts that have expressed interest in joining
-              </p>
-            </div>
-          </div>
+        {potentialDenScouts && potentialDenScouts?.length > 0 && (
+          <ScoutCard
+            title="Potential Scouts"
+            scouts={potentialDenScouts}
+            description="Scouts that have expressed interest in joining"
+          />
+        )}
 
-          <div className="mt-8 flex flex-col">
-            <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-300">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                        >
-                          Name
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Parents
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Email
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Phone
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {potentialDenScouts?.map((scout) => (
-                        <>
-                          <tr key={scout["Scout Name"]}>
-                            <td
-                              className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
-                              rowSpan={scout.Parents?.length || 1}
-                            >
-                              {scout["Scout Name"]}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parent Names"]?.[0] || null}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parents' Email"]?.[0] || null}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {scout["Parents' Phones"]?.[0] || null}
-                            </td>
-                          </tr>
-                          {scout.Parents?.slice(1).map((parent, index) => (
-                            <tr key={parent}>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                {scout["Parent Names"]?.[index + 1] || null}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                {scout["Parents' Email"]?.[index + 1] || null}
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                {scout["Parents' Phones"]?.[index + 1] || null}
-                              </td>
-                            </tr>
-                          ))}
-                        </>
-                      ))}
-                    </tbody>
-                  </table>
+        {cubHauntedDenScouts && cubHauntedDenScouts?.length > 0 && (
+          <div>
+            <div className="mb-4 border-b border-gray-200 py-4 ">
+              <div className="flex flex-wrap items-center justify-between sm:flex-nowrap">
+                <div className="">
+                  <h3 className="text-lg font-medium leading-6 text-gray-900">
+                    Cub Haunted Signups
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Scouts that have signed up for Cub Haunted
+                  </p>
+                </div>
+                <div className="ml-4 mt-4 flex-shrink-0">
+                  <CopyEmailsFromScouts scouts={cubHauntedDenScouts} />
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {cubHauntedDenScouts?.map((scout) => (
+                <CubHauntedScoutCard
+                  key={scout["Scout Name"]}
+                  scout={scout}
+                  data={data}
+                  ids={ids}
+                />
+
+                // <li key={scout["Scout Name"]}>
+                //   <a href="#x" className="block hover:bg-gray-50">
+                //     <div className="px-4 py-4 sm:px-6">
+                //       <div className="flex items-center justify-between">
+                //         <p className="truncate text-sm font-medium text-sky-600">
+                //           {scout["Scout Name"]}
+                //         </p>
+                //         <div className="ml-2 flex flex-shrink-0">
+                //           {scout["Tags"]?.map((tag) => (
+                //             <p
+                //               key={tag}
+                //               className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
+                //             >
+                //               {tag}
+                //             </p>
+                //           ))}
+                //         </div>
+                //       </div>
+                //       <div className="mt-2 sm:flex sm:justify-between">
+                //         <div className="sm:flex sm:gap-4">
+                //           {scout["Parent Names"]?.map((parentName) => (
+                //             <p
+                //               key={parentName}
+                //               className="flex items-center text-sm text-gray-500"
+                //             >
+                //               <UsersIcon
+                //                 className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+                //                 aria-hidden="true"
+                //               />
+                //               {parentName}
+                //             </p>
+                //           ))}
+                //         </div>
+                //         <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                //           {/* <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true" />
+                //   <p>
+                //     Closing on <time dateTime={position.closeDate}>{position.closeDateFull}</time>
+                //   </p> */}
+                //         </div>
+                //       </div>
+                //     </div>
+                //   </a>
+                // </li>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Layout>
   );
 }
