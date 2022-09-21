@@ -15,7 +15,7 @@ export type Status = "Active" | "Potential" | "Graduated" | "Inactive";
 export type Scout = {
   Parents?: string[];
   School?: string[];
-  "Scout Name"?: string;
+  "Scout Name": string;
   Den?: string[];
   "Cub Haunted Signups"?: string[];
   Status?: Status;
@@ -23,7 +23,10 @@ export type Scout = {
   "Parents' Phones"?: string[];
   "Parents' Email"?: string[];
   "Cub Haunted Submitted"?: string[];
-  "Health form"?: boolean;
+  /**
+   * UTC date, e.g. "2014-09-05".
+   */
+  "Health form"?: string;
   Notes?: string;
 };
 
@@ -34,7 +37,10 @@ export type Adult = {
   Email?: string;
   "Youth Protection due date"?: string;
   "Campout Signups"?: string[];
-  "Health Form"?: string;
+  /**
+   * UTC date, e.g. "2014-09-05".
+   */
+  "Health form"?: string;
   "No payment required"?: boolean;
   Notes?: string;
   Name?: string;
