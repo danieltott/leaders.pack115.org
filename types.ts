@@ -15,7 +15,7 @@ export type Status = "Active" | "Potential" | "Graduated" | "Inactive";
 export type Scout = {
   Parents?: string[];
   "Parent Names": string[];
-  School?: string[];
+  School?: string;
   "Scout Name": string;
   Den?: string[];
   "Cub Haunted Signups"?: string[];

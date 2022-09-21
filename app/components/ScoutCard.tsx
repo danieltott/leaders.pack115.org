@@ -1,8 +1,9 @@
-import type { Scout } from "../../types";
+import type { Data, Ids, Scout } from "../../types";
 import { UsersIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import Card from "~/components/Card";
+import ScoutPanel from "./ScoutPanel";
 
 export function CopyEmailsFromScouts({
   scouts,
@@ -36,14 +37,86 @@ export function CopyEmailsFromScouts({
   );
 }
 
+function ScoutItem({
+  scout,
+  data,
+  ids,
+}: {
+  scout: Scout;
+  data: Data;
+  ids: Ids;
+}) {
+  const [showPanel, setShowPanel] = useState(false);
+
+  return (
+    <>
+      <ScoutPanel
+        scout={scout}
+        isOpen={showPanel}
+        close={() => setShowPanel(false)}
+        data={data}
+        ids={ids}
+      />
+      <button
+        onClick={() => setShowPanel(true)}
+        className="block w-full hover:bg-gray-50"
+      >
+        <div className="px-4 py-4 sm:px-6">
+          <div className="flex items-center justify-between">
+            <p className="truncate text-sm font-medium text-sky-600">
+              {scout["Scout Name"]}
+            </p>
+            <div className="ml-2 flex flex-shrink-0">
+              {scout["Tags"]?.map((tag) => (
+                <p
+                  key={tag}
+                  className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
+                >
+                  {tag}
+                </p>
+              ))}
+            </div>
+          </div>
+          <div className="mt-2 sm:flex sm:justify-between">
+            <div className="sm:flex sm:gap-4">
+              {scout["Parent Names"]?.map((parentName) => (
+                <p
+                  key={parentName}
+                  className="flex items-center text-sm text-gray-500"
+                >
+                  <UsersIcon
+                    className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+                    aria-hidden="true"
+                  />
+                  {parentName}
+                </p>
+              ))}
+            </div>
+            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+              {/* <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true" />
+                    <p>
+                      Closing on <time dateTime={position.closeDate}>{position.closeDateFull}</time>
+                    </p> */}
+            </div>
+          </div>
+        </div>
+      </button>
+    </>
+  );
+}
+
 export default function ScoutCard({
   scouts,
   title,
   description,
+  data,
+  ids,
 }: {
   scouts: Scout[];
   title: React.ReactNode;
   description?: React.ReactNode;
+  data: Data;
+  ids: Ids;
 }) {
   return (
     <Card
@@ -55,47 +128,7 @@ export default function ScoutCard({
         <ul className="divide-y divide-gray-200">
           {scouts?.map((scout) => (
             <li key={scout["Scout Name"]}>
-              <a href="#x" className="block hover:bg-gray-50">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-medium text-sky-600">
-                      {scout["Scout Name"]}
-                    </p>
-                    <div className="ml-2 flex flex-shrink-0">
-                      {scout["Tags"]?.map((tag) => (
-                        <p
-                          key={tag}
-                          className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
-                        >
-                          {tag}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex sm:gap-4">
-                      {scout["Parent Names"]?.map((parentName) => (
-                        <p
-                          key={parentName}
-                          className="flex items-center text-sm text-gray-500"
-                        >
-                          <UsersIcon
-                            className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                            aria-hidden="true"
-                          />
-                          {parentName}
-                        </p>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      {/* <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true" />
-                    <p>
-                      Closing on <time dateTime={position.closeDate}>{position.closeDateFull}</time>
-                    </p> */}
-                    </div>
-                  </div>
-                </div>
-              </a>
+              <ScoutItem scout={scout} data={data} ids={ids} />
             </li>
           ))}
         </ul>

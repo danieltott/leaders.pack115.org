@@ -7,7 +7,8 @@ import { CalendarIcon, MapPinIcon, UsersIcon } from "@heroicons/react/20/solid";
 import { fetchAllData } from "~/data";
 import ScoutCard, { CopyEmailsFromScouts } from "~/components/ScoutCard";
 import Card from "~/components/Card";
-import { Scout, Data, Ids } from "types";
+import type { Scout, Data, Ids } from "types";
+import ScoutPanel from "~/components/ScoutPanel";
 
 export async function loader({ request, params }: LoaderArgs) {
   console.log("hello");
@@ -157,6 +158,8 @@ export default function Index() {
             title="Active Scouts"
             scouts={activeDenScouts}
             description="Scouts that are active and paid"
+            data={data}
+            ids={ids}
           />
         )}
 
@@ -165,6 +168,8 @@ export default function Index() {
             title="Potential Scouts"
             scouts={potentialDenScouts}
             description="Scouts that have expressed interest in joining"
+            data={data}
+            ids={ids}
           />
         )}
 
@@ -195,50 +200,6 @@ export default function Index() {
                   data={data}
                   ids={ids}
                 />
-
-                // <li key={scout["Scout Name"]}>
-                //   <a href="#x" className="block hover:bg-gray-50">
-                //     <div className="px-4 py-4 sm:px-6">
-                //       <div className="flex items-center justify-between">
-                //         <p className="truncate text-sm font-medium text-sky-600">
-                //           {scout["Scout Name"]}
-                //         </p>
-                //         <div className="ml-2 flex flex-shrink-0">
-                //           {scout["Tags"]?.map((tag) => (
-                //             <p
-                //               key={tag}
-                //               className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
-                //             >
-                //               {tag}
-                //             </p>
-                //           ))}
-                //         </div>
-                //       </div>
-                //       <div className="mt-2 sm:flex sm:justify-between">
-                //         <div className="sm:flex sm:gap-4">
-                //           {scout["Parent Names"]?.map((parentName) => (
-                //             <p
-                //               key={parentName}
-                //               className="flex items-center text-sm text-gray-500"
-                //             >
-                //               <UsersIcon
-                //                 className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                //                 aria-hidden="true"
-                //               />
-                //               {parentName}
-                //             </p>
-                //           ))}
-                //         </div>
-                //         <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                //           {/* <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" aria-hidden="true" />
-                //   <p>
-                //     Closing on <time dateTime={position.closeDate}>{position.closeDateFull}</time>
-                //   </p> */}
-                //         </div>
-                //       </div>
-                //     </div>
-                //   </a>
-                // </li>
               ))}
             </div>
           </div>
