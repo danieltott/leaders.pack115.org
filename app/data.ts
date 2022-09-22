@@ -10,8 +10,9 @@ import type {
   AllData,
 } from "../types";
 import invariant from "tiny-invariant";
+import { qualifiedUrl } from "~/util/url.server";
 
-async function loadAllData(): Promise<AllData> {
+export async function loadAllData(): Promise<AllData> {
   invariant(process.env.AIRTABLE_BASE_ID, "Airtable Base ID not found");
   invariant(process.env.AIRTABLE_API_KEY, "Airtable API Key not found");
 
@@ -47,8 +48,6 @@ async function loadAllData(): Promise<AllData> {
     ids.dens.push(record.id);
   });
 
-  console.log("Loaded Dens");
-
   const scouts = await base<Scout>("Scouts")
     .select({
       view: "All Scouts",
@@ -60,7 +59,6 @@ async function loadAllData(): Promise<AllData> {
     ids.scouts.push(record.id);
   });
 
-  console.log("Loaded Scouts");
   const adults = await base<Adult>("Adults")
     .select({
       view: "All Adults",
@@ -71,8 +69,6 @@ async function loadAllData(): Promise<AllData> {
     data.adults[record.id] = record.fields;
     ids.adults.push(record.id);
   });
-
-  console.log("Loaded Adults");
 
   const positions = await base<Position>("Pack Leader Positions")
     .select({
@@ -85,8 +81,6 @@ async function loadAllData(): Promise<AllData> {
     ids.positions.push(record.id);
   });
 
-  console.log("Loaded Positions");
-
   const cubHauntedSignups = await base<CubHauntedSignup>("Cub Haunted Signups")
     .select({
       view: "All Signups",
@@ -98,28 +92,26 @@ async function loadAllData(): Promise<AllData> {
     ids.cubHauntedSignups.push(record.id);
   });
 
-  console.log("Loaded Cub Haunted Signups");
-
-  console.log({ data, ids });
-
   return { data, ids };
 }
 
 export async function fetchAllData() {
-  console.log("fetching");
-  const allData = await loadAllData();
-  return allData;
-  // const allDataResponse = await fetch(
-  //   "http://localhost:3000/.netlify/functions/load-data"
-  // );
-  // if (allDataResponse.ok) {
-  //   const allData: AllData = await allDataResponse.json();
+  if (process.env.NETLIFY_LOCAL) {
+    const allData = await loadAllData();
+    return allData;
+  }
 
-  //   return allData;
-  // } else {
-  //   console.log(allDataResponse.status);
-  //   console.log(allDataResponse.statusText);
-  //   console.log(await allDataResponse.text());
-  //   throw new Error("Failed to fetch all data");
-  // }
+  const allDataResponse = await fetch(
+    qualifiedUrl("/.netlify/functions/load-data")
+  );
+  if (allDataResponse.ok) {
+    const allData: AllData = await allDataResponse.json();
+
+    return allData;
+  } else {
+    console.log(allDataResponse.status);
+    console.log(allDataResponse.statusText);
+    console.log(await allDataResponse.text());
+    throw new Error("Failed to fetch all data");
+  }
 }
