@@ -1,17 +1,13 @@
 import invariant from "tiny-invariant";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import type { LoaderArgs } from "@remix-run/node";
 import Layout from "~/components/Layout";
-import { CalendarIcon, MapPinIcon, UsersIcon } from "@heroicons/react/20/solid";
 import { fetchAllData } from "~/data";
 import ScoutCard, { CopyEmailsFromScouts } from "~/components/ScoutCard";
-import Card from "~/components/Card";
 import type { Scout, Data, Ids } from "types";
-import ScoutPanel from "~/components/ScoutPanel";
 
 export async function loader({ request, params }: LoaderArgs) {
-  console.log("hello");
   invariant(params.denId, "denId not found");
 
   const allData = await fetchAllData();
