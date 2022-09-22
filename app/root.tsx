@@ -1,5 +1,4 @@
 import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import {
   Links,
   Meta,
@@ -7,7 +6,6 @@ import {
   Scripts,
   ScrollRestoration,
   Link,
-  useLoaderData,
 } from "@remix-run/react";
 import { Disclosure } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -15,6 +13,8 @@ import classNames from "classnames";
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return { title: "Pack 115 Leaders Portal" };
@@ -25,8 +25,33 @@ export const links: LinksFunction = () => {
 };
 
 export async function loader({ request }: LoaderArgs) {
-  return null;
+  if (!isAuthorized(request)) {
+    return json({ authorized: false }, { status: 401 });
+  }
+
+  // Load data for password-protected page here.
+
+  return json({
+    authorized: true,
+    // Include extra data for password-protected page here.
+  });
 }
+
+const isAuthorized = (request: Request) => {
+  const header = request.headers.get("Authorization");
+
+  if (!header) return false;
+
+  const base64 = header.replace("Basic ", "");
+  const [username, password] = Buffer.from(base64, "base64")
+    .toString()
+    .split(":");
+
+  return (
+    username === process.env.HTTP_USERNAME &&
+    password === process.env.HTTP_PASSWORD
+  );
+};
 
 export const LiveReload =
   process.env.NODE_ENV !== "development"
@@ -72,6 +97,8 @@ export const LiveReload =
       };
 
 export default function App() {
+  const { authorized } = useLoaderData<typeof loader>();
+
   const location = useLocation();
 
   const navigation = useMemo(() => {
@@ -172,8 +199,7 @@ export default function App() {
               </>
             )}
           </Disclosure>
-
-          <Outlet />
+          {authorized ? <Outlet /> : <div>Not authorized.</div>}
         </div>
 
         <ScrollRestoration />
