@@ -20,9 +20,6 @@ export type Scout = {
   Den?: string[];
   "Cub Haunted Signups"?: string[];
   Status?: Status;
-  "Parents' Addresses"?: string[];
-  "Parents' Phones"?: string[];
-  "Parents' Email"?: string[];
   "Cub Haunted Submitted"?: string[];
   /**
    * UTC date, e.g. "2014-09-05".
@@ -30,6 +27,10 @@ export type Scout = {
   "Health form"?: string;
   Notes?: string;
   Tags?: string[];
+  "Primary Email"?: string;
+  "Primary Address"?: string;
+  "Primary Phone"?: string;
+  "All Emails"?: string;
 };
 
 export type Adult = {

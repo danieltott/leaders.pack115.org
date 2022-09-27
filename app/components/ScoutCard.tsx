@@ -14,8 +14,8 @@ export function CopyEmailsFromScouts({
 
   const allEmails = useMemo(() => {
     const list = scouts.reduce<string[]>((acc, scout) => {
-      if (scout["Parents' Email"] && scout["Parents' Email"].length > 0) {
-        return [...acc, ...scout["Parents' Email"]];
+      if (scout["All Emails"]) {
+        return [...acc, scout["All Emails"]];
       }
       return acc;
     }, []);
