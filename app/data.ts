@@ -50,7 +50,7 @@ export async function loadAllData(): Promise<AllData> {
 
   const scouts = await base<Scout>("Scouts")
     .select({
-      view: "All Scouts",
+      view: "All Scouts and other Youth",
     })
     .all();
 
