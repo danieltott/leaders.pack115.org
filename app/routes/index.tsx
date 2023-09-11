@@ -14,7 +14,10 @@ export function CopyAllEmails({ ids, data }: { ids: Ids; data: Data }) {
   const allEmails = useMemo(() => {
     const list = ids.adults.reduce<string[]>((acc, adultId) => {
       const adult = data.adults[adultId];
-      if (adult["Email"]) {
+      if (
+        adult["Email"] &&
+        (adult.Status === "Active" || adult.Status === "Potential")
+      ) {
         return [...acc, adult["Email"]];
       }
 
