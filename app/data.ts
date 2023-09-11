@@ -83,7 +83,7 @@ export async function loadAllData(): Promise<AllData> {
 
   const cubHauntedSignups = await base<CubHauntedSignup>("Cub Haunted Signups")
     .select({
-      view: "All Signups",
+      view: "All Signups 2023",
     })
     .all();
 
